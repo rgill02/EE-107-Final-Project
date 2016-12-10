@@ -1,66 +1,95 @@
-% Adam Chapman + Ryan Gill
-% EE-107
-% Final Project
+function [] = RunCommsSystem(fs, T, is_hsp, is_zf, alpha, K, noise_power, N, h_coef)
+%RunCommsSystem Summary of this function goes here
+%   Detailed explanation goes here
 
-clear;
-close all;
-clc;
-
-%% Define Parameters
-fs = 32;        % sampling frequency
-hsp_time = 1;   % half sine pulse duration (seconds)
-N = 1;          % dct blocks to send per transmission
-No = 0.5;         % noise power
-to_plot = true; % show plots
-is_hsp = false;  % true if half sine pulse, false if raised cosine
-is_zf = false;   % true if zero forcing equalizer, false if mmse
-
-K = 2;          % truncation length for SRRC
-alpha = 0.5;    % rolloff factor for SRRC
-
-%% Convert Image to Bitstream
+%load image
 [Ztres, block_height, block_width, pixel_height, pixel_width, minval, maxval] = ImagePreProcess();
 bit_matrix = ConvertToBitstream(Ztres, N);
 
-%% Transmission and Reception
-pulse_width = fs;
-pulse_time = hsp_time;
-
-% send N dct blocks at a time
-received_bitstreams = zeros(size(bit_matrix));
-for ii = 1:1:size(bit_matrix, 1)
-    %shows plots of first transmission only
-    if ii == 2
-        to_plot = false;
+received_bits = zeros(size(bit_matrix));
+for ii = 1:size(bit_matrix, 1)
+    
+    %modulate signal
+    if is_hsp
+        modulated_signal = Modulate_HSP(fs, T, bit_matrix(ii,:));
+    else
+        modulated_signal = Modulate_SRRC(fs, T, alpha, K, bit_matrix(ii,:));
     end
 
-    %current set of N dct blocks
-    signal = bit_matrix(ii,:);
+    %{
+    %plot modulated signal
+    figure;
+    plot(modulated_signal);
+    title('Modulated Signal');
+    %}
 
-    % Modulation
-    modulated_signal = Modulate(fs, hsp_time, alpha, K, signal, to_plot, is_hsp);
+    %send signal through channel
+    channel_output = Channel(fs, h_coef, modulated_signal);
+
+    %{
+    %plot output of channel
+    figure;
+    plot(channel_output);
+    title('Channel Output');
+    %}
+
+    %add noise to signal
+    noisy_signal = Noise(noise_power, channel_output);
+
+    %{
+    %plot noisy signal
+    figure;
+    plot(noisy_signal);
+    title('Signal with Noise');
+    %}
+
+    %pass signal through equalizer
+    if is_zf
+        equalizer_output = ZeroForcingEqualizer(fs, h_coef, noisy_signal);
+    else
+        equalizer_output = MMSEEqualizer(fs, h_coef, noise_power, noisy_signal);
+    end
+
+    %{
+    %plot output of equalizer
+    figure;
+    plot(equalizer_output);
+    title('Output of Equalizer');
+    %}
+
+    %pass signal through matched filter
+    matched_output = MatchedFilter(fs, T, alpha, K, equalizer_output, is_hsp);
+
+    %{
+    %plot output of matched filter
+    figure;
+    plot(matched_output);
+    title('Output of Matched Filter');
+    %}
+
+    %sample and detect signal
+    received_bits(ii,:) = SampleDetect(fs, T, K, matched_output, is_hsp, N);
     
-    % Transmit through channel
-    [channel_output, channel_coef, channel_ir] = Channel(fs, pulse_width, pulse_time, No, modulated_signal, to_plot, is_hsp, K);
-
-    % Add noise
-    noisy_output = Noise(pulse_width, pulse_time, No, channel_output, to_plot, is_hsp, K);
-
-    % Compensate for channel effects with equalizer
-    equalizer_output = Equalizer(pulse_width, pulse_time, channel_coef, channel_ir, No, noisy_output, to_plot, is_zf, is_hsp, K);
-
-    % Apply matched filter at receiver
-    matched_filter_output = MatchedFilter(fs, hsp_time, alpha, K, equalizer_output, to_plot, is_hsp);
-
-    % Sampling and detection
-    received_bits = SampleDetect(fs, hsp_time, alpha, K, matched_filter_output, to_plot, is_hsp, N);
-
-    %save received bitstreams
-    received_bitstreams(ii,:) = received_bits;
+    ii
 end
 
-%% Convert Bitstreams Back to Image
-Z_rec = ConvertFromBitstream(received_bitstreams, N);
-ImagePostProcess(Z_rec, block_height, block_width, pixel_height, pixel_width, minval, maxval);
+%restore image
+newZtres = ConvertFromBitstream(received_bits, N);
+ImagePostProcess(newZtres, block_height, block_width, pixel_height, pixel_width, minval, maxval);
 
+if is_hsp
+    pulse_type = 'HSP, ';
+else
+    pulse_type = 'SRRC, ';
+end
+
+if is_zf
+    eq_type = 'Zero Forcing EQ, ';
+else
+    eq_type = 'MMSE EQ, ';
+end
+
+title([pulse_type eq_type 'Noise = ' num2str(noise_power)]);
+
+end
 
