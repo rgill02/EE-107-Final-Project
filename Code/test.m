@@ -3,9 +3,10 @@ close all;
 %define constants
 fs = 32;
 T = 1;
-is_hsp = false;
+is_hsp = true;
 alpha = 0.5;
 K = 6;
+noise_power = 5;
 
 %define bitstream
 bits = [1 1 0 1 0 1 0 0 0 1 0 1 0 0 1 1 0 1 1 1 0 1 1 1 0 1 0 1 0 0 1 1];
@@ -22,8 +23,16 @@ figure;
 plot(modulated_signal);
 title('Modulated Signal');
 
+%add noise to signal
+noisy_signal = Noise(noise_power, modulated_signal);
+
+%plot noisy signal
+figure;
+plot(noisy_signal);
+title('Signal with Noise');
+
 %pass signal through matched filter
-matched_output = MatchedFilter(fs, T, alpha, K, modulated_signal, is_hsp);
+matched_output = MatchedFilter(fs, T, alpha, K, noisy_signal, is_hsp);
 
 %plot output of matched filter
 figure;
