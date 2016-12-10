@@ -7,9 +7,11 @@ is_hsp = true;
 alpha = 0.5;
 K = 6;
 noise_power = 0;
+N = 1;
 
 %load image
 [Ztres, block_height, block_width, pixel_height, pixel_width, minval, maxval] = ImagePreProcess();
+bit_matrix = ConvertToBitstream(Ztres, N);
 
 %define bitstream
 bits = [1 1 0 1 0 1 0 0 0 1 0 1 0 0 1 1 0 1 1 1 0 1 1 1 0 1 0 1 0 0 1 1];
@@ -47,7 +49,7 @@ title('Output of Matched Filter');
 received_bits = SampleDetect(fs, T, K, matched_output, is_hsp, length(bits));
 
 %restore image
-newZtres = Ztres;
+newZtres = ConvertFromBitstream(bit_matrix, N);
 ImagePostProcess(newZtres, block_height, block_width, pixel_height, pixel_width, minval, maxval);
 
 %check if got correct bits
