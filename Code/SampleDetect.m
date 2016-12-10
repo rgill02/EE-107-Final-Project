@@ -1,4 +1,4 @@
-function [received_bits] = SampleDetect(fs, T, K, signal, is_hsp, num)
+function [received_bits] = SampleDetect(fs, T, K, signal, is_hsp, N)
 %SampleDetect Samples and thresholds input signal
 %
 %   Inputs:
@@ -7,14 +7,15 @@ function [received_bits] = SampleDetect(fs, T, K, signal, is_hsp, num)
 %       K = truncation length for raised cosine pulse
 %       signal = vector representing signal to modulate
 %       is_hsp = true for half sine pulse, false for raised cosine
+%       N = number of dct blocks per transmission
 %   Outputs:
 %       received_bits = vector respresenting received bits
 
+%allocate output vector
+num_samples = 512*N;
+received_bits = zeros(1, num_samples);
+
 if is_hsp
-    %allocate output vector
-    num_samples = floor(length(signal)/(fs*T));
-    received_bits = zeros(1, num_samples);
-    
     %sampling for HSP
     for ii = 1:num_samples
         %threshold signal
@@ -25,10 +26,6 @@ if is_hsp
         end
     end
 else
-    %allocate output vector
-    num_samples = num;  %TODO fix
-    received_bits = zeros(1, num_samples);
-    
     %sampling for SRRC
     jj = 1;
     start_index = 2*K*T*fs+1;
