@@ -1,37 +1,32 @@
-function [modulated_SRRC] = Modulate_SRRC(fs, hsp_time, alpha, K, hsp_energy, signal)
+function [output] = Modulate_SRRC(fs, T, alpha, K, bits)
 %Modulate_SRRC Modulates the square root raised cosine pulse
 %
 %   Inputs:
 %       fs = sampling frequency
-%       hsp_time = time of half sine pulse
+%       T = width of bit pulse
 %       alpha = roll off factor
 %       K = truncation parameter
-%       hsp_energy = energy of half sine pulse
-%       signal = vector of bits
+%       bits = vector of bits
 %   Outputs:
-%       modulated_SRRC = resulting signal
+%       output = modulated signal
 
-signal(signal==0) = -1;         %change zeros to -1
-bits_per_set = length(signal);
-samples_per_pulse = 2*K*fs;
-time = -K*hsp_time:1/fs:K*hsp_time-1/fs;
-%time = -K*hsp_time:1/fs:K*hsp_time;
+%allocate output vector
+num_bits = length(bits);
+spill_over = 2*K*T*fs - T*fs;
+output = zeros(1, num_bits*fs*T + spill_over);
 
-SRRC = ManualSRRC(time,hsp_time,alpha,K,hsp_energy);
-
-mod_samples = (2*K+bits_per_set-1)*fs;
-
-modulated_SRRC = zeros(1,mod_samples);
+%generate srrc pulse
+srrc = SRRC(fs, T, alpha, K);
+srrc_pulse_width = length(srrc);
 
 jj = 1;
-% iterate along all the bits in the current set 
-for ii = 1:1:bits_per_set
-    modulated_SRRC(jj:jj+samples_per_pulse-1) = ...
-        modulated_SRRC(jj:jj+samples_per_pulse-1) + SRRC*signal(ii);
-    jj = jj+fs;
-    %figure;
-    %plot(modulated_SRRC);
-    %title(jj);
+for ii = 1:num_bits
+    if bits(ii) == 1
+        output(jj:jj+srrc_pulse_width-1) = output(jj:jj+srrc_pulse_width-1) + srrc;
+    else
+        output(jj:jj+srrc_pulse_width-1) = output(jj:jj+srrc_pulse_width-1) - srrc;
+    end
+    jj = jj + fs*T;
 end
 
 end
