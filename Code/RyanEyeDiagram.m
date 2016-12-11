@@ -19,7 +19,11 @@ if is_hsp
         offset = fs/2;
     end
 else
-    offset = 0;
+    if is_matched
+        offset = 0;
+    else
+        offset = fs/2;
+    end
 end
 
 %plot and combine eye diagrams of positive and negative signal to ensure 

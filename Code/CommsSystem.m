@@ -89,11 +89,20 @@ end
 
 %plot eye diagrams
 if plot_eyes
-    RyanEyeDiagram(fs, T, is_hsp, {'Modulated Signal'; my_title}, modulated_signal, false);
-    RyanEyeDiagram(fs, T, is_hsp, {'Channel Output'; my_title}, channel_output(1:length(modulated_signal)), false);
-    RyanEyeDiagram(fs, T, is_hsp, {'Channel Output + Noise'; my_title}, noisy_signal(1:length(modulated_signal)), false);
-    RyanEyeDiagram(fs, T, is_hsp, {'Output of Equalizer'; my_title}, equalizer_output(1:length(modulated_signal)), false);
-    RyanEyeDiagram(fs, T, is_hsp, {'Output of Matched Filter'; my_title}, matched_output(fs*T+1:length(modulated_signal)), false);
+    if is_hsp
+        offset = 0;
+    else
+        offset = (((2*K*fs*T)-(fs*T)) / 2) + 4*fs*T;
+    end
+    RyanEyeDiagram(fs, T, is_hsp, {'Modulated Signal'; my_title}, modulated_signal(1+offset:length(modulated_signal)-offset), false);
+    RyanEyeDiagram(fs, T, is_hsp, {'Channel Output'; my_title}, channel_output(1+offset:length(modulated_signal)-offset), false);
+    RyanEyeDiagram(fs, T, is_hsp, {'Channel Output + Noise'; my_title}, noisy_signal(1+offset:length(modulated_signal)-offset), false);
+    RyanEyeDiagram(fs, T, is_hsp, {'Output of Equalizer'; my_title}, equalizer_output(1+offset:length(modulated_signal)-offset), false);
+    if is_hsp
+        RyanEyeDiagram(fs, T, is_hsp, {'Output of Matched Filter'; my_title}, matched_output(1+fs*T:length(modulated_signal)), true);
+    else
+        RyanEyeDiagram(fs, T, is_hsp, {'Output of Matched Filter'; my_title}, matched_output(1+2*K*fs*T:length(modulated_signal)), true);
+    end
 end
 
 %indicate end of simulation

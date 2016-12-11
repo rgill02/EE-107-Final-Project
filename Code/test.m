@@ -17,8 +17,8 @@ plot_signals = false;
 plot_eyes = true;
 
 for ii = 1:1%length(noise_power)
-    CommsSystem(fs, T, true, true, alpha, K, noise_power(ii), N, h_coef, plot_signals, plot_eyes);
+    %CommsSystem(fs, T, true, true, alpha, K, noise_power(ii), N, h_coef, plot_signals, plot_eyes);
     %CommsSystem(fs, T, true, false, alpha, K, noise_power(ii), N, h_coef, plot_signals, plot_eyes);
-    %CommsSystem(fs, T, false, true, alpha, K, noise_power(ii), N, h_coef, plot_signals, plot_eyes);
+    CommsSystem(fs, T, false, true, alpha, K, noise_power(ii), N, h_coef, plot_signals, plot_eyes);
     %CommsSystem(fs, T, false, false, alpha, K, noise_power(ii), N, h_coef, plot_signals, plot_eyes);
 end
