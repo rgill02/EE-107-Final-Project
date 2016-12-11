@@ -9,15 +9,16 @@ function [output] = MMSEEqualizer(fs, h_coef, noise_power, signal)
 %   Outputs:
 %       output = resulting signal
 
+%compute frequency response of the message signal
+M = fft(signal);
 %upsample channel to get impulse response
 h = upsample(h_coef, fs);
 %compute frequency response
 H = fft(h, length(signal));
 %compute impulse response of MMSE equalizer
 Q = conj(H) ./ (abs(H).^2 + 2*noise_power);
-q = ifft(Q);
-%apply MMSE equalizer through convolution
-output = conv(q, signal);
+%multiply frequency responses of signal and equalizer, take inverse
+output = ifft(M.*Q);
 
 end
 

@@ -14,15 +14,16 @@ function [output] = ZeroForcingEqualizer(fs, h_coef, signal)
 %   Outputs:
 %       output = vector representing equalized signal
 
+%compute frequency response of the message signal
+M = fft(signal);
 %upsample channel to get impulse response
 h = upsample(h_coef, fs);
 %compute frequency response
 H = fft(h, length(signal));
 %compute impulse response of ZF equalizer
 Q = 1 ./ H;
-q = ifft(Q);
-%apply ZF equalizer through convolution
-output = conv(q, signal);
+%multiply frequency responses of signal and equalizer, take inverse
+output = ifft(M.*Q);
 
 end
 
