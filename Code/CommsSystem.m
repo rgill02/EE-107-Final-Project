@@ -1,4 +1,4 @@
-function [] = CommsSystem(fs, T, is_hsp, is_zf, alpha, K, noise_power, N, h_coef, plot_signals, plot_eyes)
+function [success] = CommsSystem(fs, T, is_hsp, is_zf, alpha, K, noise_power, N, h_coef, plot_signals, plot_eyes)
 %CommsSystem Does a single simulation of the communication system
 %   
 %   Inputs:
@@ -14,7 +14,12 @@ function [] = CommsSystem(fs, T, is_hsp, is_zf, alpha, K, noise_power, N, h_coef
 %       plot_signals = true will show plots of the signal after each stage
 %       plot_eyes = true will plot eye diagrams
 %   Outputs:
-%       None
+%       success = outputs true if the bitmatrix that was sent was
+%       successfully recovered. Need this because image post process does
+%       not work correctly so the resulting image is not a good evaluation
+%       of our communication system. This output is only a good evaluation
+%       of our system when there is 0 noise because if even a single bit is
+%       wrong it will return false
 
 %create title for run
 if is_hsp
@@ -71,6 +76,13 @@ for ii = 1:size(bit_matrix, 1)
     if mod(ii, ceil(25/N)) == 0
         fprintf('.');
     end
+end
+
+%check if received bits are correct
+if isequal(received_bits, bit_matrix)
+    success = true
+else
+    success = false
 end
 
 %restore image

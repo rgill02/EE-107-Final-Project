@@ -14,7 +14,7 @@ noise_power = [0];% 0.01 0.025 0.05 0.1 0.2 0.3 0.5 1];
 N = 5;
 h_coef = [1 1/2 3/4 -2/7];
 plot_signals = false;
-plot_eyes = true;
+plot_eyes = false;
 
 for ii = 1:1%length(noise_power)
     %CommsSystem(fs, T, true, true, alpha, K, noise_power(ii), N, h_coef, plot_signals, plot_eyes);
