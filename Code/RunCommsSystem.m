@@ -1,11 +1,43 @@
-function [] = RunCommsSystem(fs, T, is_hsp, is_zf, alpha, K, noise_power, N, h_coef)
-%RunCommsSystem Summary of this function goes here
-%   Detailed explanation goes here
+function [] = CommsSystem(fs, T, is_hsp, is_zf, alpha, K, noise_power, N, h_coef, plot_signals, plot_eyes)
+%CommsSystem Does a single simulation of the communication system
+%   
+%   Inputs:
+%       fs = sampling frequency
+%       T = bit duration in time
+%       is_hsp = true if half sine pulse,
+%       is_zf = true if zero forcing equalizer
+%       alpha = roll off factor for srrc
+%       K = truncation parameter for srrc
+%       noise_power = power of noise
+%       N = number of dct blocks to send per transmission
+%       h_coef = coefficients of channel
+%       plot_signals = true will show plots of the signal after each stage
+%       plot_eyes = true will plot eye diagrams
+%   Outputs:
+%       None
+
+%create title for run
+if is_hsp
+    pulse_type = 'HSP';
+else
+    pulse_type = 'SRRC';
+end
+if is_zf
+    eq_type = 'Zero Forcing EQ';
+else
+    eq_type = 'MMSE EQ';
+end
+my_title = [pulse_type ', ' eq_type ', ' 'Noise = ' num2str(noise_power)];
+
+%indicate start of simulation
+fprintf('Starting run with: %s\n', my_title);
+fprintf('Running...');
 
 %load image
 [Ztres, block_height, block_width, pixel_height, pixel_width, minval, maxval] = ImagePreProcess();
 bit_matrix = ConvertToBitstream(Ztres, N);
 
+%send picture
 received_bits = zeros(size(bit_matrix));
 for ii = 1:size(bit_matrix, 1)
     
@@ -16,32 +48,11 @@ for ii = 1:size(bit_matrix, 1)
         modulated_signal = Modulate_SRRC(fs, T, alpha, K, bit_matrix(ii,:));
     end
 
-    %{
-    %plot modulated signal
-    figure;
-    plot(modulated_signal);
-    title('Modulated Signal');
-    %}
-
     %send signal through channel
     channel_output = Channel(fs, h_coef, modulated_signal);
 
-    %{
-    %plot output of channel
-    figure;
-    plot(channel_output);
-    title('Channel Output');
-    %}
-
     %add noise to signal
     noisy_signal = Noise(noise_power, channel_output);
-
-    %{
-    %plot noisy signal
-    figure;
-    plot(noisy_signal);
-    title('Signal with Noise');
-    %}
 
     %pass signal through equalizer
     if is_zf
@@ -50,46 +61,42 @@ for ii = 1:size(bit_matrix, 1)
         equalizer_output = MMSEEqualizer(fs, h_coef, noise_power, noisy_signal);
     end
 
-    %{
-    %plot output of equalizer
-    figure;
-    plot(equalizer_output);
-    title('Output of Equalizer');
-    %}
-
     %pass signal through matched filter
     matched_output = MatchedFilter(fs, T, alpha, K, equalizer_output, is_hsp);
-
-    %{
-    %plot output of matched filter
-    figure;
-    plot(matched_output);
-    title('Output of Matched Filter');
-    %}
 
     %sample and detect signal
     received_bits(ii,:) = SampleDetect(fs, T, K, matched_output, is_hsp, N);
     
-    ii
+    %show it is still running
+    if mod(ii, ceil(25/N)) == 0
+        fprintf('.');
+    end
 end
 
 %restore image
 newZtres = ConvertFromBitstream(received_bits, N);
 ImagePostProcess(newZtres, block_height, block_width, pixel_height, pixel_width, minval, maxval);
+title(my_title);
 
-if is_hsp
-    pulse_type = 'HSP, ';
-else
-    pulse_type = 'SRRC, ';
+%plot signals
+if plot_signals
+    AdamPlot(modulated_signal, {'Modulated Signal'; my_title});
+    AdamPlot(channel_output, {'Channel Output'; my_title});
+    AdamPlot(noisy_signal, {'Channel Output + Noise'; my_title});
+    AdamPlot(equalizer_output, {'Output of Equalizer'; my_title});
+    AdamPlot(matched_output, {'Output of Matched Filer'; my_title});
 end
 
-if is_zf
-    eq_type = 'Zero Forcing EQ, ';
-else
-    eq_type = 'MMSE EQ, ';
+%plot eye diagrams
+if plot_eyes
+    RyanEyeDiagram(fs, T, is_hsp, {'Modulated Signal'; my_title}, modulated_signal);
+    RyanEyeDiagram(fs, T, is_hsp, {'Channel Output'; my_title}, channel_output(1:length(modulated_signal)));
+    RyanEyeDiagram(fs, T, is_hsp, {'Channel Output + Noise'; my_title}, noisy_signal(1:length(modulated_signal)));
+    RyanEyeDiagram(fs, T, is_hsp, {'Output of Equalizer'; my_title}, equalizer_output(1:length(modulated_signal)));
 end
 
-title([pulse_type eq_type 'Noise = ' num2str(noise_power)]);
+%indicate end of simulation
+fprintf('\nDone\n');
 
 end
 
