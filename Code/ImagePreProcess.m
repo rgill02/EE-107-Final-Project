@@ -1,8 +1,8 @@
 function [Ztres, block_height, block_width, pixel_height, pixel_width, minval, maxval]=ImagePreProcess()
 
 load trees
+figure;
 Z=ind2gray(X(1:200,1:200),gray);
-%figure;
 imshow(Z);
 
 %% take DCT in 8x8 blocks and quantize it into 8-bit numbers
