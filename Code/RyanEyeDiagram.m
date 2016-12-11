@@ -1,10 +1,9 @@
-function [] = RyanEyeDiagram(fs, T, is_hsp, diagram_title, signal, is_matched)
+function [] = RyanEyeDiagram(fs, T, diagram_title, signal, is_matched)
 %RyanEyeDiagram Abstracts Eye diagram function
 %
 %   Inputs:
 %       fs = sampling frequency
 %       T = bit duration in time
-%       is_hsp = true if half sine pulse
 %       diagram_title = title of eye diagram
 %       signal = vector representing signal
 %       is_matched = true if matched filter output
@@ -12,18 +11,10 @@ function [] = RyanEyeDiagram(fs, T, is_hsp, diagram_title, signal, is_matched)
 %       None
 
 %used to shift eye diagram to middle of plot
-if is_hsp
-    if is_matched
-        offset = 0;
-    else
-        offset = fs/2;
-    end
+if is_matched
+    offset = 0;
 else
-    if is_matched
-        offset = 0;
-    else
-        offset = fs/2;
-    end
+    offset = fs/2;
 end
 
 %plot and combine eye diagrams of positive and negative signal to ensure 
