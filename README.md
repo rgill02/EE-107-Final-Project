@@ -1,2 +1,3 @@
 # EE-107-Final-Project
-Modeling a Communication System in MATLAB
+### Adam Chapman and Ryan Gill
+Modeling a digital communication system in MATLAB
