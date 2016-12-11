@@ -84,15 +84,16 @@ if plot_signals
     AdamPlot(channel_output, {'Channel Output'; my_title});
     AdamPlot(noisy_signal, {'Channel Output + Noise'; my_title});
     AdamPlot(equalizer_output, {'Output of Equalizer'; my_title});
-    AdamPlot(matched_output, {'Output of Matched Filer'; my_title});
+    AdamPlot(matched_output, {'Output of Matched Filter'; my_title});
 end
 
 %plot eye diagrams
 if plot_eyes
-    RyanEyeDiagram(fs, T, is_hsp, {'Modulated Signal'; my_title}, modulated_signal);
-    RyanEyeDiagram(fs, T, is_hsp, {'Channel Output'; my_title}, channel_output(1:length(modulated_signal)));
-    RyanEyeDiagram(fs, T, is_hsp, {'Channel Output + Noise'; my_title}, noisy_signal(1:length(modulated_signal)));
-    RyanEyeDiagram(fs, T, is_hsp, {'Output of Equalizer'; my_title}, equalizer_output(1:length(modulated_signal)));
+    RyanEyeDiagram(fs, T, is_hsp, {'Modulated Signal'; my_title}, modulated_signal, false);
+    RyanEyeDiagram(fs, T, is_hsp, {'Channel Output'; my_title}, channel_output(1:length(modulated_signal)), false);
+    RyanEyeDiagram(fs, T, is_hsp, {'Channel Output + Noise'; my_title}, noisy_signal(1:length(modulated_signal)), false);
+    RyanEyeDiagram(fs, T, is_hsp, {'Output of Equalizer'; my_title}, equalizer_output(1:length(modulated_signal)), false);
+    RyanEyeDiagram(fs, T, is_hsp, {'Output of Matched Filter'; my_title}, matched_output(fs*T+1:length(modulated_signal)), false);
 end
 
 %indicate end of simulation
