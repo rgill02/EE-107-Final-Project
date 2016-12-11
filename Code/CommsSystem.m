@@ -80,9 +80,9 @@ end
 
 %check if received bits are correct
 if isequal(received_bits, bit_matrix)
-    success = true
+    success = true;
 else
-    success = false
+    success = false;
 end
 
 %restore image
