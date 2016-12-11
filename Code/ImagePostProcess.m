@@ -11,3 +11,6 @@ newZ=blkproc(temp,[8 8],fun);
 
 figure;
 imshow(newZ);
+
+%NOTE: this is code that was given to us and does fully reconstruct the picture
+%this or ImagePreProcess loses some information somewhere
